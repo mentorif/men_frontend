@@ -11,6 +11,28 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+//Route::get('/', function () {
+//    return view('layout.public');
+//});
+
+Route::get('/', 'HomeController@getIndex');
+Route::get('privacy-policy', 'StaticPagesController@getPrivacyPolicy');
+Route::get('code-of-conduct', 'StaticPagesController@getCodeConduct');
+Route::get('terms-of-use', 'StaticPagesController@getTermUse');
+
+// Public access
+Route::middleware(['guest'])->group(function(){
+
+    /*----------------------------Sign Up-------------------------*/
+    Route::post('user/register-manual', 'UserController@postSignUp');
+
+    /*----------------------------Sign In-------------------------*/
+    Route::get('user/login', 'UserController@getSignIn');
+    Route::post('user/login', 'UserController@postSignIn');
+});
+
+
+// private access
+Route::middleware(['auth'])->group(function(){
+    Route::get('/account/coc', ['uses' => 'AccountController@getCodeOfConduct']);
 });
