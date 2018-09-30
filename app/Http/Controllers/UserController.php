@@ -3,11 +3,13 @@ namespace App\Http\Controllers;
 
 use Flow\Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Redirect;
 
 use Symfony\Component\Console\Input\Input;
 use App\Menlib\Utility;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Model\User;
 
 Class UserController extends BaseController
 {
@@ -101,27 +103,27 @@ Class UserController extends BaseController
                     // make api call
                     $response = $this->apiRequest(self::REQUEST_POST, self::REGISTER_USER_API_ENDPOINT, [self::REQUEST_POST => $post]);
                     if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
+                        User::login($post['email']);
                         $profile_data = [];
-                        $profile_data['first_name'] = $post['f_name'];
-                        $profile_data['last_name'] = $post['l_name'];
+                        $profile_data['f_name'] = $post['f_name'];
+                        $profile_data['l_name'] = $post['l_name'];
                         $profile_data['email'] = $post['email'];
                         $profile_data['is_mentor'] = $post['is_mentor'];
-                        $profile_data['user_id'] = array_get($response,'data.user_id');
-                        $profile_data['token'] = array_get($response,'data.token');
-                        $redis = \Redis::connection();
-                        $redis->set(\Config::get('constant_en.profile_data').':'.array_get($response,'data.token'), base64_encode(serialize($profile_data)));
-                        \Session::set(\Config::get('constant_en.private_token'), array_get($response,'data.token'));
-                        $redirect = \Session::get('redirect_uri','/account/coc');
+                        $profile_data['is_privacy_confirmed'] = $post['is_privacy_confirmed'];
+                        $profile_data['id'] = array_get($response,'data.user_id');
+                        $profile_data['persist_code'] = array_get($response,'data.token');
+                        User::setSession($profile_data);
+                        $redirect = \Session::get('redirect_uri','/account');
                         unset($profile_data, $inputs, $post);
                         return Redirect::to($redirect);
                     } else if(is_array($response) && \Config::get('constants_en.code.code_success') != array_get($response,'code','')
                         && \Config::get('constants_en.txt.txt_failed') ==  array_get($response,'status','')) {
-                        return Redirect::back()->with( ['inputs' => $inputs,'errors' => array_get($response,'errors',[])] );
+                        return Redirect::back()->with( ['inputs' => $inputs,'errs' => array_get($response,'errors',[])] );
                     }
                 }
                 return Redirect::back()->with( ['inputs' => $inputs,'errors' => $errors] );
             }
-            return "Invalid Inputs";
+            return Redirect::back()->with( ['inputs' => $inputs,'errs' => "Invalid Inputs"] );
         } catch (Exception $e) {
 
         }
@@ -155,7 +157,6 @@ Class UserController extends BaseController
                 // the IP address of the client making these requests into this application.
                 if ($this->hasTooManyLoginAttempts($request)) {
                     $this->fireLockoutEvent($request);
-
                     return $this->sendLockoutResponse($request);
                 }
 
@@ -166,27 +167,31 @@ Class UserController extends BaseController
                 // make api call
                 $response = $this->apiRequest(self::REQUEST_POST, self::SIGNIN_USER_API_ENDPOINT, [self::REQUEST_POST => $post]);
                 if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
+                    User::login($post['email']);
                     $request->session()->regenerate();
-                    $this->clearLoginAttempts($request);//array_get($response,'data.0.persist_code')
-                    \Session::put(\Config::get('constants_en.private_token'), "ansbbs");
-                    dd($response);
+                    $this->clearLoginAttempts($request);
+                    User::setSession(array_get($response,'data.0'));
+                    unset($inputs, $post);
+                    $redirect = \Session::get('redirect_uri','/account');
+                    return Redirect::to($redirect);
                 } else if(is_array($response) && \Config::get('constants_en.code.code_success') != array_get($response,'code','')
                     && \Config::get('constants_en.txt.txt_failed') ==  array_get($response,'status','')) {
-                    dd(__LINE__);
+
                     // If the login attempt was unsuccessful we will increment the number of attempts
                     // to login and redirect the user back to the login form. Of course, when this
                     // user surpasses their maximum number of attempts they will get locked out.
                     $this->incrementLoginAttempts($request);
 
                     return redirect()->back()
-                        ->withInput(Request::except(["data.auth.password"]))
+                        ->withInput($request->except(["data.auth.password"]))
                         ->withErrors(['errs' => array_get($response,'errors',[])]);
-                    //return Redirect::back()->with(['username' => array_get($inputs,'data.auth.username'), 'errs' => array_get($response,'errors',[])]);
                 }
             }
             return redirect('user/login')->withErrors($validator)->withInput();
         } catch (Exception $e) {
-
+            return redirect()->back()
+                ->withInput($request->except(["data.auth.password"]))
+                ->withErrors();
         }
     }
 }

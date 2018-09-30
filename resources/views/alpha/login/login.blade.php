@@ -68,14 +68,20 @@
                 <hr>
 
                 <h3>Or your email</h3>
-                <?php $errs = session('errors');  print_r($errs);?>
                 <form id="" autocomplete="on" method="post" action="/user/login">
                     {{csrf_field()}}
                     <p>* Required Field</p>
-                    @if(!empty($errs))
+                    @if(!empty($errors->has('errs')))
                         <div class="errorinfo alert alert-danger">
-                            @foreach($errs as $error)
+                            @foreach($errors->get('errs') as $error)
                             <h4><span class="glyphicon glyphicon-exclamation-sign"></span> {{$error}}</h4>
+                            @endforeach
+                        </div>
+                    @endif
+                    @if(!empty($errors->has('email')))
+                        <div class="errorinfo alert alert-danger">
+                            @foreach($errors->get('email') as $error)
+                                <h4><span class="glyphicon glyphicon-exclamation-sign"></span> {{$error}}</h4>
                             @endforeach
                         </div>
                     @endif

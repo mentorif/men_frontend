@@ -67,11 +67,12 @@
                         </div>
                         <hr/>
                         <h3>Or create an account below</h3>
-                        <?php $inputs = Session::get('inputs'); $errors = Session::get('errors'); ?>
-                        @if(!empty($errors))
+                        <?php $inputs = Session::get('inputs'); $errors = Session::get('errors'); $errs = Session::get('errs'); ?>
+                        @if(!empty($errs))
                         <div class="errorinfo alert alert-danger">
-                            <h4><span class="glyphicon glyphicon-exclamation-sign"></span> There was a problem with your submission.</h4>
-                            <p>Errors have been <em>indicated</em> below.</p>
+                            @foreach($errs as $er)
+                                <h4><span class="glyphicon glyphicon-exclamation-sign"></span>{{$er}}</h4>
+                            @endforeach
                         </div>
                         @endif
                         <div class="col-sm-6 name-first @if(!empty($errors['first_name'])) {{"alert alert-danger"}} @endif">

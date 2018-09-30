@@ -10,7 +10,6 @@ use GuzzleHttp\Client;
 
 Abstract class BaseController extends ParentController
 {
-
     const REQUEST_GET = 'get';
     const REQUEST_POST = 'post';
     const REQUEST_DELETE = 'delete';
@@ -139,8 +138,13 @@ Abstract class BaseController extends ParentController
      * @return array
      */
     protected function getToken() {
-        $temp = (Session::has(self::API_TOKEN)) ? Session::get(self::API_TOKEN) : [];
-        if(empty($temp['mf_hash'])){ // global hash
+        $temp = [];
+        if(\Auth::check()) {
+            $profile_data = Session::get('profile_data');
+            if (!empty($profile_data) && !empty(array_get($profile_data,'token',''))) {
+                $temp['mf_token'] = array_get($profile_data,'token','');
+            }
+        } else {
             $temp['mf_hash'] = '345B6E57D8A612A85ABE973CF20EBFE69ACE3FA2B6A851ECB944839427B506D9';
         }
         return $temp;
