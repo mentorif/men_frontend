@@ -111,7 +111,7 @@
                     <div class="submit"><input class="btn btn-primary btn-lg" type="submit" value="Sign In"></div>
                 </form>
                 <p>
-                    <a id="register_m" href="/register/start" title="Join Now">Not a member? Join Now</a><br>
+                    <a id="register_m" href="/" title="Join Now">Not a member? Join Now</a><br>
                     <a id="forgot_password" href="/user/forgotPassword" title="Forgot Your Password?">Forgot Your Password?</a>
                 </p>
             </div>

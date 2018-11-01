@@ -124,17 +124,16 @@ Class UserController extends BaseController
                 return Redirect::back()->with( ['inputs' => $inputs,'errors' => $errors] );
             }
             return Redirect::back()->with( ['inputs' => $inputs,'errs' => "Invalid Inputs"] );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
 
         }
     }
 
     public function getSignIn(Request $request) {
         try {
-
             $data = [];
             return view('login.index',$data);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
 
         }
     }
@@ -167,7 +166,11 @@ Class UserController extends BaseController
                 // make api call
                 $response = $this->apiRequest(self::REQUEST_POST, self::SIGNIN_USER_API_ENDPOINT, [self::REQUEST_POST => $post]);
                 if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
-                    User::login($post['email']);
+                    $rem_me = false;
+                    if(1 == array_get($inputs,'data.auth.remember_me', 0)) {
+                        $rem_me = true;
+                    }
+                    User::login($post['email'], $rem_me);
                     $request->session()->regenerate();
                     $this->clearLoginAttempts($request);
                     User::setSession(array_get($response,'data.0'));
@@ -188,10 +191,22 @@ Class UserController extends BaseController
                 }
             }
             return redirect('user/login')->withErrors($validator)->withInput();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput($request->except(["data.auth.password"]))
                 ->withErrors();
+        }
+    }
+
+    public function getLogout(Request $request) {
+        try {
+            if(Auth::check()) {
+                \Session::flush();
+                Auth::logout();
+            }
+            return redirect('user/login');
+        } catch (\Exception $e) {
+
         }
     }
 }

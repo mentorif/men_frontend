@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\Handler;
 use Flow\Exception;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as ParentController;
 use phpDocumentor\Reflection\Types\Null_;
 use Session as Session;
@@ -16,7 +21,7 @@ Abstract class BaseController extends ParentController
     const REQUEST_TYPES = [self::REQUEST_GET, self::REQUEST_POST, self::REQUEST_DELETE];
     const API_SOURCE_JSON = 'json';
     const API_TOKEN = 'token';
-
+    const COUNTRIES_API_END_POINT = 'list-country';
 
     /**
      * Common function to interact with API server
@@ -33,7 +38,7 @@ Abstract class BaseController extends ParentController
     {
         try {
             if (!in_array($type, self::REQUEST_TYPES)) {
-                throw new Exception("Request type is not valid - $type.");
+                throw new \ErrorException(\Lang::get('message.invalid_request_type'). '-'. $type);
             }
             $start = microtime(true);
 
@@ -54,7 +59,7 @@ Abstract class BaseController extends ParentController
 
             $type = strtolower($type);
             $headers = ['X-Request-Platform' => config('env.PLATFORM'), 'X-Request-Client' => env('APP_NAME')];
-            $client = new Client(['debug' => env('APP_DEBUG', false), 'exceptions' => env('APP_DEBUG', false), 'verify' => ('prod' !== env('APP_ENV')) ? false : true]);
+            $client = new Client(['debug' => false, 'exceptions' => env('APP_DEBUG', false), 'verify' => ('prod' !== env('APP_ENV')) ? false : true]);
             switch ($type) {
                 case self::REQUEST_GET:
                     $get = (!empty($data['get'])) ? array_merge($data['get'], $token) : $token;
@@ -111,7 +116,7 @@ Abstract class BaseController extends ParentController
                     $response = $client->{$type}(env('API_URL') . DIRECTORY_SEPARATOR . $api, $send_param);
                     break;
                 default:
-                    throw new Exception("Invalid call type method");
+                    throw new \ErrorException(\Lang::get('message.invalid_request_type'). '-'. $type);
             }//end switch
 
             // cleanup temp files
@@ -124,9 +129,18 @@ Abstract class BaseController extends ParentController
             if (!empty($response)) {
                 return json_decode($response->getBody()->getContents(), true);
             }
-            return NULL;
-        } catch (Exception $exception) {
-            return $exception->getMessage();
+            throw new \ErrorException(\Lang::get('message.no_return_from_api_call'));
+        } catch (ClientException $e) {
+            //client exception $e
+
+        } catch (ServerException $e) {
+            // server exception
+
+        } catch (BadResponseException $e) {
+            // bad response exception
+
+        } catch (\Exception $e) {
+            throw new \ErrorException($e->getMessage(), $e->getCode());
         }
 
     }

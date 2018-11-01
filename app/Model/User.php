@@ -20,17 +20,24 @@ class User extends Authenticatable
         $profile_data['is_code_conduct_confirmed'] = array_get($data,'is_code_conduct_confirmed',0);
         $profile_data['is_acc_setup_done'] = array_get($data,'is_acc_setup_done',0);
         $profile_data['visibility'] = array_get($data,'visibility',0);
+        $profile_data['is_profile_image_done'] = array_get($data,'is_profile_image_done',0);
+        $profile_data['profile_pic_path'] = array_get($data,'profile_pic_path','');
+        $is_personal_info_done = 0;
+        if (!empty(array_get($data,'personalinfo',[])) && count(array_get($data,'personalinfo',[]))) {
+            $is_personal_info_done = 1;
+        }
+        $profile_data['is_personal_info_done'] = $is_personal_info_done;
 
         \Session::put('profile_data', $profile_data);
         return \Session::save();
 
     }
 
-    public static function login($email){
+    public static function login($email, $rem_me = false){
 
         $userObj = self::where('email',$email)->first();
         if (!empty($userObj) && $userObj instanceof User) {
-            Auth::login($userObj);
+            Auth::login($userObj, $rem_me);
             return $userObj;
         }
         return false;

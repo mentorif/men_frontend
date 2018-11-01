@@ -20,6 +20,7 @@ Route::get('privacy-policy', 'StaticPagesController@getPrivacyPolicy');
 Route::get('code-of-conduct', 'StaticPagesController@getCodeConduct');
 Route::get('terms-of-use', 'StaticPagesController@getTermUse');
 Route::get('test-me', function(){dd(env('APP_NAME'));});
+Route::get('/country-region', ['as' => 'country-region', 'uses' => 'CommonController@getCountryRegion']);
 
 // Public access
 Route::middleware(['guest'])->group(function(){
@@ -31,6 +32,7 @@ Route::middleware(['guest'])->group(function(){
     Route::get('user/login', 'UserController@getSignIn');
     Route::post('user/login', [ 'as' => 'login', 'uses' => 'UserController@postSignIn']);
 
+
 });
 
 
@@ -40,5 +42,17 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/account', [ 'as' => 'home', 'uses' => 'AccountController@getIndex']);
     Route::post('/account/mentee-coc', [ 'as' => 'mentee-coc', 'uses' => 'AccountController@postMenteeCoc']);
     Route::post('/account/mentee-terms', [ 'as' => 'mentee-terms', 'uses' => 'AccountController@postMenteeTerms']);
+    Route::post('/account/mentee-venture', ['as' => 'mentee-venture', 'uses' => 'AccountController@postMenteeVenture']);
 
+    Route::get('/logout', [ 'as' => 'logout', 'uses' => 'UserController@getLogout']);
+
+    Route::post('/account/profile-photo', ['as' => 'profile-photo', 'uses' => 'AccountController@postProfilePhoto']);
+    Route::post('/account/mentee-personal', ['as' => 'mentee-personal', 'uses' => 'AccountController@postMenteePersonal']);
+
+    Route::get('/account/business-venture', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessVenture']);
+    Route::get('/account/business-photo', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPhoto']);
+    Route::get('/account/business-personal', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPersonal']);
+    Route::get('/account/business-preview', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPreview']);
+
+    Route::get('/account/ready', [ 'as' => 'home', 'uses' => 'AccountController@getAccountReady']);
 });

@@ -19,7 +19,7 @@ class HomeController extends BaseController
             return view('home.index',$data);
 
             //$this->apiRequest();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             LogError::logEexception($e);
         }
     }

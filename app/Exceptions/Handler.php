@@ -3,7 +3,11 @@
 namespace App\Exceptions;
 
 use Exception;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -48,6 +52,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if($exception instanceof NotFoundHttpException) {
+            return view('errors.404');
+        }
+        if ($exception instanceof \ErrorException || $exception instanceof ClientException
+            || $exception instanceof ServerException || $exception instanceof BadResponseException) {
+
+            return view('errors.500');
+        }
         return parent::render($request, $exception);
     }
 }

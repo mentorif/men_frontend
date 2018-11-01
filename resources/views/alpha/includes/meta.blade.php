@@ -9,3 +9,4 @@
 <meta name="keywords" content="business mentoring program, business mentorship"/>
 <meta name="description" content="Mentorif is a free business mentoring program for entrepreneurs and a rewarding volunteer opportunity for business professionals. Join now and grow a business!"/>
 <meta name="verify-v1" content="6sbKkw6V2Srlnse4exz9XoCoKeEtLHWmqOcfTfiJOqo=" />
+<meta name="csrf-token" content="{{csrf_token()}}" />

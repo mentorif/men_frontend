@@ -11,7 +11,7 @@ class StaticPagesController extends BaseController
             $data = [];
             return view('staticpages.privacy',$data);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             LogError::logException($e);
         }
     }
@@ -22,7 +22,7 @@ class StaticPagesController extends BaseController
             $data = [];
             return view('staticpages.codeconduct',$data);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             LogError::logException($e);
         }
     }
@@ -33,7 +33,7 @@ class StaticPagesController extends BaseController
             $data = [];
             return view('staticpages.term',$data);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             LogError::logException($e);
         }
     }
