@@ -26,7 +26,7 @@
                         <div class="panel-footer clearfix media affinity-bar-container">
                             <div class="pull-left">
                                 <a href="javascript:void(0)"
-                                   title="View Naman Verma's Profile">
+                                   title="View {{array_get($data,'f_name','').' '.array_get($data,'l_name')}}'s Profile">
                                     <img class="profile-pic img-circle" src="{{asset('storage').DIRECTORY_SEPARATOR.array_get($data,'profile_pic_path')}}" alt="{{array_get($data,'f_name','').' '.array_get($data,'l_name')}}" />
                                 </a>
                             </div>

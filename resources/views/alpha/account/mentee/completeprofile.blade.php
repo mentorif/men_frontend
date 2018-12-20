@@ -7,16 +7,16 @@
             <div class="panel">
                 <div class="panel-body">
                     <h4 class="bottom-buffer">
-                        Hi Naman! Welcome to the MicroMentor Community. </h4>
+                        Hi Naman! Welcome to the Mentorif Community. </h4>
                     <p class="bottom-buffer">
-                        MicroMentor is a nonprofit organization that provides free mentoring services to entrepreneurs
+                        Mentorif is a nonprofit organization that provides free mentoring services to entrepreneurs
                         who
                         need help the most. In order for you to effectively connect with a mentor, we ask that you take
                         at least 15 minutes to answer
                         the following questions thoughtfully. </p>
                     <p class="bottom-buffer">
                         We have found that the more complete your answers are, the more likely you are to connect with
-                        mentors on MicroMentor! </p>
+                        mentors on Mentorif! </p>
                     <p class="bottom-buffer">
                         Let's get started! <a data-toggle="modal" data-target="#myModal" class="click">
                             Check Out an Example Profile </a>

@@ -21,6 +21,7 @@ Route::get('code-of-conduct', 'StaticPagesController@getCodeConduct');
 Route::get('terms-of-use', 'StaticPagesController@getTermUse');
 Route::get('test-me', function(){dd(env('APP_NAME'));});
 Route::get('/country-region', ['as' => 'country-region', 'uses' => 'CommonController@getCountryRegion']);
+Route::get('/state-city', ['as' => 'state-city', 'uses' => 'CommonController@getStateCity']);
 
 // Public access
 Route::middleware(['guest'])->group(function(){
@@ -40,7 +41,7 @@ Route::middleware(['guest'])->group(function(){
 Route::middleware(['auth'])->group(function(){
 
     Route::get('/account', [ 'as' => 'home', 'uses' => 'AccountController@getIndex']);
-    Route::post('/account/mentee-coc', [ 'as' => 'mentee-coc', 'uses' => 'AccountController@postMenteeCoc']);
+    Route::post('/account/mentee-coc', [ 'as' => 'mentee-coc', 'uses' => 'AccountController@postMentCoc']);
     Route::post('/account/mentee-terms', [ 'as' => 'mentee-terms', 'uses' => 'AccountController@postMenteeTerms']);
     Route::post('/account/mentee-venture', ['as' => 'mentee-venture', 'uses' => 'AccountController@postMenteeVenture']);
 
@@ -49,10 +50,16 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/account/profile-photo', ['as' => 'profile-photo', 'uses' => 'AccountController@postProfilePhoto']);
     Route::post('/account/mentee-personal', ['as' => 'mentee-personal', 'uses' => 'AccountController@postMenteePersonal']);
 
-    Route::get('/account/business-venture', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessVenture']);
-    Route::get('/account/business-photo', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPhoto']);
-    Route::get('/account/business-personal', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPersonal']);
-    Route::get('/account/business-preview', [ 'as' => 'home', 'uses' => 'AccountController@getBusinessPreview']);
+    Route::get('/account/business-venture', [ 'as' => 'business-venture', 'uses' => 'AccountController@getBusinessVenture']);
+    Route::get('/account/business-photo', [ 'as' => 'business-photo', 'uses' => 'AccountController@getBusinessPhoto']);
+    Route::get('/account/business-personal', [ 'as' => 'business-personal', 'uses' => 'AccountController@getBusinessPersonal']);
+    Route::get('/account/business-preview', [ 'as' => 'business-preview', 'uses' => 'AccountController@getBusinessPreview']);
+    Route::get('/account/expert-preview', [ 'as' => 'expert-preview', 'uses' => 'AccountController@getExpertPreview']);
 
     Route::get('/account/ready', [ 'as' => 'home', 'uses' => 'AccountController@getAccountReady']);
+
+    Route::get('/account/mentor-profile', ['as' => 'mentor-profile', 'uses' => 'AccountController@getMentorProfile']);
+    Route::post('/account/mentor-profile', ['as' => 'mentor-profile', 'uses' => 'AccountController@postMentorProfile']);
+
+    Route::get('/my/profile',['as' => 'my-profile', 'uses' => 'DashboardController@getProfile']);
 });

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Menlib\Utility;
-use Flow\Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +11,8 @@ class AccountController extends BaseController
     const CODE_CONDUCT = 'account/coc';
     const TERMS_COND = 'account/terms';
     const VENTURE_DATA = 'account/venture-data';
-    const PROFILE_IMAGE_PATH = 'images'.DIRECTORY_SEPARATOR.'avatars';
+    const MENTOR_DATA = 'account/mentor-data';
+    const PROFILE_IMAGE_PATH = 'images/avatars';
     const PROFILE_PIC = 'account/profile-pic';
     CONST MENTEE_PERSONAL_DATA = 'account/mentee-personal-info';
     CONST USER_INFO = 'account/info';
@@ -36,7 +36,10 @@ class AccountController extends BaseController
                                         // Profile Image is uploaded
                                         if (1 == array_get($profile_data,'is_personal_info_done', 0)) {
                                             // Personal info is saved
-
+                                            if ('pri' !== array_get($profile_data,'visibility','')) {
+                                                // account is either public or hidden
+                                                return $this->takeMyControl($request, array_get($profile_data,'visibility',''), 'mentee');
+                                            }
                                             // return preview screen
                                             return $this->getBusinessPreview($request);
                                         }
@@ -60,16 +63,43 @@ class AccountController extends BaseController
                             // Code of conduct is confirmed
                             if (1 == array_get($profile_data,'is_acc_setup_done', 0)) {
                                 // account set up is done
-                                // redirect to home view
+                                if ('pri' !== array_get($profile_data,'visibility','')) {
+                                    // account is either public or hidden
+                                    return $this->takeMyControl($request, array_get($profile_data,'visibility',''), 'mentor');
+                                }
+                                // return preview screen
+                                return $this->getExpertPreview($request);
                             }
-                            // return account setup voew
+                            // return account setup view
+                            return $this->getMentorProfile($request);
                         }
                         // return coc view
+                        return view('account.mentor.coc', $data);
                     }
                 }
                 // @todo: return error privacy not confirmed
             }
             return redirect()->to('login');
+        } catch (\Exception $e) {
+
+        }
+    }
+
+    private function takeMyControl($request, $visibility, $user_type) {
+        try {
+            if ('pub' == $visibility) {
+                //account is already public
+                if ('mentor' == $user_type) {
+                    // get me to mentee search page
+                    return "I am here to look mentee";
+                } else {
+                    // get me to mentor search page
+                    return "I am here to look mentor";
+                }
+            } else {
+                // account is hidden
+                //@todo: take appropriate action
+            }
         } catch (\Exception $e) {
 
         }
@@ -135,46 +165,36 @@ class AccountController extends BaseController
         }
     }
 
-    public function getMentorSettings(Request $request) {
+    public function getMentorProfile(Request $request) {
         try {
-            $profile_data = \Session::get('profile_data');
-            if (!empty($profile_data)) {
-                dd($profile_data);
-
+            $data = [];
+            $response = $this->apiRequest(self::REQUEST_GET, self::MENTOR_DATA, [self::REQUEST_GET => ['personal_info' => 1]]);
+            if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
+                $data['mentor_details'] = array_get($response,'data.mentor_details',[]);
+                $data['industries'] = array_get($response, 'data.industries',[]);
+                $data['functional_areas'] = array_get($response, 'data.functional_areas',[]);
+                $data['countries'] = array_get($response, 'data.countries',[]);
             }
-            return redirect()->to('user/login');
+            return view('account.mentor.completeprofile', compact('data'));
         } catch (\Exception $e) {
 
         }
     }
 
-    public function getMenteeSettings(Request $request) {
+    public function getExpertPreview(Request $request) {
         try {
-            $profile_data = \Session::get('profile_data');
-            if (!empty($profile_data)) {
-                dd($profile_data);
-
+            $data = [];
+            $response = $this->apiRequest(self::REQUEST_GET,self::USER_INFO, [self::REQUEST_GET => ['expert_info' => 1,'personal_info' => 1]]);
+            if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
+                $data = array_get($response, 'data',[]);
             }
-            return redirect()->to('user/login');
+            return view('account.mentor.preview', compact('data'));
         } catch (\Exception $e) {
 
         }
     }
 
-    public function getMentorCoc(Request $request) {
-        try {
-            $profile_data = \Session::get('profile_data');
-            if (!empty($profile_data)) {
-                dd($profile_data);
-
-            }
-            return redirect()->to('user/login');
-        } catch (\Exception $e) {
-
-        }
-    }
-
-    public function postMenteeCoc(Request $request) {
+    public function postMentCoc(Request $request) {
         try {
             $inputs = $request->all();
             //dd($inputs);
@@ -367,14 +387,93 @@ class AccountController extends BaseController
         }
     }
 
+    public function postMentorProfile(Request $request) {
+        try {
+            $inputs = $request->all();
+            $validate_array = [
+                'mentor_selected_expertises' => array_get($inputs, 'data.ExpertProfile.selected_expertises',[]),
+                'mentor_industry_id' => array_get($inputs, 'data.ExpertProfile.industry_id',''),
+                'mentor_professional_bio' => array_get($inputs, 'data.ExpertProfile.professional_bio',''),
+                'mentor_entrepreneur_pitch' => array_get($inputs, 'data.ExpertProfile.entrepreneur_pitch',''),
+                'mentor_mentoring_stages' => array_get($inputs, 'data.ExpertProfile.mentoring_stages',[]),
+                'mentor_years_management' => array_get($inputs, 'data.ExpertProfile.years_management',0),
+                'mentor_years_ownership' => array_get($inputs, 'data.ExpertProfile.years_ownership',0),
+                'mentor_country_expertise_id' => array_get($inputs, 'data.ExpertProfile.country_expertise_id',[]),
+                'mentor_language_id' => array_get($inputs, 'data.User.language_id',[]),
+                'mentor_country_id' => array_get($inputs, 'data.User.country_id',''),
+                'mentor_phone' => array_get($inputs, 'data.User.phone',''),
+
+                'mentor_website_url' => array_get($inputs, 'data.ExpertProfile.website_url',''),
+                'mentor_business_name' => array_get($inputs, 'data.ExpertProfile.business_name',''),
+                'mentor_title' => array_get($inputs, 'data.ExpertProfile.title',''),
+                'mentor_city' => array_get($inputs, 'data.User.city',''),
+                'mentor_state' => array_get($inputs, 'data.User.state',''),
+                'mentor_postal_code' => array_get($inputs, 'data.User.postal_code',''),
+                'mentor_ethnicity' => array_get($inputs, 'data.User.ethnicity',''),
+                'mentor_gender' => array_get($inputs, 'data.User.gender',''),
+                'mentor_birth_year' => array_get($inputs, 'data.User.birth_year',0),
+                'mentor_photo_upload' => array_get($inputs, 'data.User.photo_upload','')
+            ];
+            $rules = [
+                'mentor_selected_expertises' => 'required|array|min:1|max:7',
+                'mentor_industry_id' => 'required',
+                'mentor_professional_bio' => 'required|min:300|max:1000',
+                'mentor_entrepreneur_pitch' => 'required|min:300|max:1000',
+                'mentor_mentoring_stages' => ['required', 'array', Rule::in(['concept','startup','existing'])],
+                'mentor_years_management' => ['required','regex:/^\d+$/'],
+                'mentor_years_ownership' => ['required','regex:/^\d+$/'],
+                'mentor_country_expertise_id' => 'required|array|min:1',
+                'mentor_language_id' => ['required','array','max:15'],
+                'mentor_country_id' => 'required',
+                'mentor_phone' => ['required','regex:/^\d+$/'],
+            ];
+            if (!empty($validate_array['mentor_photo_upload'])) {
+                $rules['mentor_photo_upload'] = 'file|image|mimes:jpeg,png|max:2048';
+            }
+            $validator = \Validator::make($validate_array,$rules);
+            $profile_pic_path = '';
+            if ($validator->passes()) {
+                if (!empty($validate_array['mentor_photo_upload'])) {
+                    $profile_pic_path = Utility::uploadFile($validate_array['mentor_photo_upload'], 'public', self::PROFILE_IMAGE_PATH);
+                    $validate_array['mentor_photo_upload'] = $profile_pic_path;
+                }
+                $response = $this->apiRequest(self::REQUEST_POST, self::MENTOR_DATA, [self::REQUEST_POST => $validate_array]);
+                if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
+                    \Session::put('profile_data.is_personal_info_done', 1);
+                    \Session::put('profile_data.is_acc_setup_done', 1);
+                    \Session::put('profile_data.is_profile_pic_done', 1);
+                    \Session::put('profile_data.profile_pic_path', $profile_pic_path);
+                    return \Redirect::to('/account/expert-preview');
+                } else if(is_array($response) && \Config::get('constants_en.code.code_success') != array_get($response,'code','')
+                    && \Config::get('constants_en.txt.txt_failed') ==  array_get($response,'status','')) {
+                    return redirect('/account/mentor-profile')->withErrors(array_get($response,'errors',[]))->withInput();
+                }
+            }
+            return redirect('/account/mentor-profile')->withErrors($validator)->withInput();
+        } catch (\Exception $e) {
+
+        }
+    }
+
     public function getAccountReady() {
         try {
             $response = $this->apiRequest(self::REQUEST_POST, self::READY_TO_GO, [self::REQUEST_POST => []]);
+            $profile_data = \Session::get('profile_data');
             if (is_array($response) && \Config::get('constants_en.code.code_success') == array_get($response,'code','')) {
-                return \Redirect::to('/search/mentors');
+                if (0 == array_get($profile_data,'is_mentor', 0)) {
+                    return \Redirect::to('/search/mentor');
+                } else {
+                    return \Redirect::to('/search/business');
+                }
             } else if(is_array($response) && \Config::get('constants_en.code.code_success') != array_get($response,'code','')
                 && \Config::get('constants_en.txt.txt_failed') ==  array_get($response,'status','')) {
-                return redirect('/account/business-preview')->withErrors(['errs' => array_get($response,'errors',[])])->withInput();
+
+                if (0 == array_get($profile_data,'is_mentor', 0)) {
+                    return redirect('/account/business-preview')->withErrors(['errs' => array_get($response,'errors',[])])->withInput();
+                } else {
+                    return redirect('/account/expert-preview')->withErrors(['errs' => array_get($response,'errors',[])])->withInput();
+                }
+
             }
         } catch (\Exception $e) {
 
